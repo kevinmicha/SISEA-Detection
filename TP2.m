@@ -3,8 +3,8 @@ close all
 clc
 % Expressions are
 % A_hat = mean(x)
-% sigma0^2_hat = mean(xx')
-% sigma1^2_hat = mean((x-A_hat)(x-A_hat)')
+% sigma0^2_hat = mean(x^2)
+% sigma1^2_hat = mean((x-A_hat)^2)
 % lambda = N*A^2/sigma^2
 % E(x) = nu + lambda
 % var(x) = 2nu + 4lambda
@@ -23,12 +23,12 @@ PFA1 = 0.1; PFA2 = 0.01;
 
 for m=1:miteration
     x0 = randn(1,nbp)*sqrt(s); %generation of hypothesis H0
-    sigma0_squared_hat = mean(x0*x0');
-    sigma1_squared_hat = mean((x0-mean(x0))*(x0-mean(x0))');
+    sigma0_squared_hat = mean(x0.^2);
+    sigma1_squared_hat = mean((x0-mean(x0)).^2);
     T0 = nbp*log(sigma0_squared_hat/sigma1_squared_hat); %computation of the statistics under H0
     x1 = A + randn(1,nbp)*sqrt(s); %generation of hypothesis H1
-    sigma0_squared_hat = mean(x1*x1');
-    sigma1_squared_hat = mean((x1-mean(x1))*(x1-mean(x1))');
+    sigma0_squared_hat = mean(x1.^2);
+    sigma1_squared_hat = mean((x1-mean(x1)).^2);
     T1 = nbp*log(sigma0_squared_hat/sigma1_squared_hat); %computation of the statistics under H1
     T00(m) = T0;
     T11(m) = T1;
@@ -90,15 +90,19 @@ legend("Histogramme", "Courbe théorique")
 title("Statistique T(x) sous H_1")
 
 % Signal processing
+sigma_1_rep = []; sigma_0_rep = []; A_rep = [];
 load('Ainconnu.mat','x1');
 gamma = chi2inv(1-PFA2,mean_h0);
 for n=1:length(x1)-nbp
     A_hat = mean(x1(n:n+nbp));
-    sigma0_squared_hat = mean(x1(n:n+nbp)*x1(n:n+nbp)');
-    sigma1_squared_hat = mean((x1(n:n+nbp)-A_hat)*(x1(n:n+nbp)-A_hat)');
+    sigma0_squared_hat = mean(x1(n:n+nbp).^2);
+    sigma1_squared_hat = mean((x1(n:n+nbp)-A_hat).^2);
     T(n) = nbp*log(sigma0_squared_hat/sigma1_squared_hat);
     if(T(n)>gamma)
         H(n) = 1;
+        sigma_0_rep = [sigma_0_rep sigma0_squared_hat];
+        sigma_1_rep = [sigma_1_rep sigma1_squared_hat];
+        A_rep = [A_rep A_hat];
     else
         H(n) = 0;
     end
